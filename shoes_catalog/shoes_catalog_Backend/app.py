@@ -5,25 +5,27 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_HOST']     = 'localhost'
+app.config['MYSQL_USER']     = 'root'
 app.config['MYSQL_PASSWORD'] = 'ryx123'
-app.config['MYSQL_DB'] = 'shoes_catalog'
+app.config['MYSQL_DB']       = 'shoes_catalog'
 
 mysql = MySQL(app)
 
 
 @app.route('/products', methods=['GET'])
 def get_products():
-    q = request.args.get('q', '')
+    q = request.args.get('q', '').strip()
     cur = mysql.connection.cursor()
+
     if q:
         cur.execute("""
             SELECT * FROM products
             ORDER BY CASE WHEN name LIKE %s THEN 0 ELSE 1 END, name
         """, (q + '%',))
     else:
-        cur.execute("SELECT * FROM products")
+        cur.execute("SELECT * FROM products ORDER BY id DESC")
+
     rows = cur.fetchall()
     cur.close()
     return jsonify([{
@@ -54,8 +56,27 @@ def add_product():
         (name, description, float(price), image_url)
     )
     mysql.connection.commit()
+    new_id = cur.lastrowid
     cur.close()
-    return jsonify({'message': 'Product added'}), 201
+
+    return jsonify({'message': 'Product added', 'id': new_id}), 201
+
+
+@app.route('/products/<int:product_id>', methods=['DELETE'])
+def delete_product(product_id):
+    cur = mysql.connection.cursor()
+
+    cur.execute("SELECT id FROM products WHERE id = %s", (product_id,))
+    row = cur.fetchone()
+    if not row:
+        cur.close()
+        return jsonify({'error': 'Product not found'}), 404
+
+    cur.execute("DELETE FROM products WHERE id = %s", (product_id,))
+    mysql.connection.commit()
+    cur.close()
+
+    return jsonify({'message': 'Product deleted'}), 200
 
 
 if __name__ == '__main__':
