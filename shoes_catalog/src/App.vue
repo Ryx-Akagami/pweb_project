@@ -7,7 +7,6 @@
         <button :class="{ active: view === 'list' }" @click="view = 'list'">View all products</button>
       </nav>
     </header>
-
     <main>
       <AddProduct v-if="view === 'add'" />
       <ProductList v-if="view === 'list'" />
@@ -30,7 +29,6 @@ export default {
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: Arial, sans-serif; background: #f5f5f5; }
-
 header {
   background: #1a1a2e;
   padding: 16px 32px;
@@ -39,7 +37,6 @@ header {
   justify-content: space-between;
 }
 header h1 { color: white; font-size: 20px; }
-
 nav button {
   background: transparent;
   border: 2px solid white;
@@ -55,6 +52,5 @@ nav button:hover, nav button.active {
   background: white;
   color: #1a1a2e;
 }
-
 main { max-width: 1100px; margin: 40px auto; padding: 0 24px; }
 </style>
